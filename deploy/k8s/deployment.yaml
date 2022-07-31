@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: server-info-api
+  labels:
+    app: server-info-api
+    app.kubernetes.io/component: backend
+    app.kubernetes.io/name: server-info-api
+    app.kubernetes.io/version: v1.0.0
+spec:
+  selector:
+    matchLabels:
+      app: server-info-api
+  template:
+    metadata:
+      labels:
+        app: server-info-api
+    spec:
+      containers:
+        - name: server-info-api
+          # image: ${DOCKER_REGISTRY}/${DOCKER_IMAGE}:${DOCKER_IMAGETAG}
+          image: localhost:5000/serverinfoapi:latest-dev
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+              name: http
+          env:
+            - name: HTTP_PORT
+              value: "80"
+          securityContext:
+            allowPrivilegeEscalation: false
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "32Mi"
+            limits:
+              cpu: "500m"
+              memory: "1Gi"
+      restartPolicy: Always
+      terminationGracePeriodSeconds: 15
+  replicas: 1
+  revisionHistoryLimit: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: server-info-api-svc
+spec:
+  type: ClusterIP
+  selector:
+    app: server-info-api
+  ports:
+    - port: 80
+      targetPort: 80
+      protocol: TCP
